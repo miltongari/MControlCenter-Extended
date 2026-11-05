@@ -24,6 +24,8 @@ set(PROJECT_SOURCES
     src/helper.cpp src/helper.h
     src/msi-ec_helper.cpp src/msi-ec_helper.h
     src/settings.cpp src/settings.h
+    src/cleaner.cpp src/cleaner.h
+    src/batteryhealth.cpp src/batteryhealth.h
     src/resources.qrc
 )
 

@@ -32,6 +32,7 @@
 *.app
 
 *.user
+*.qm
 /build/
 /scripts/*.tar.gz
 /scripts/MControlCenter-*-bin/

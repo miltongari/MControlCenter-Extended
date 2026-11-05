@@ -20,11 +20,14 @@
 #define MAINWINDOW_H
 
 #include "powermonitor.h"
+#include "cleaner.h"
+#include "batteryhealth.h"
 #include <QMainWindow>
 #include <QCloseEvent>
 #include <QSystemTrayIcon>
 #include <QtWidgets>
 #include <QDBusPendingCallWatcher>
+#include <QTimer>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -53,6 +56,7 @@ private:
     [[nodiscard]] QString intToQString(int value) const;
     void updateBatteryCharge();
     void updateBatteryThreshold();
+    void updateBatteryHealth();
     void updateChargingStatus();
     void updateCpuTemp();
     void updateGpuTemp();
@@ -121,6 +125,18 @@ private:
     QAction *restoreAction = nullptr;
     QAction *quitAction = nullptr;
 
+    void startDustCleaning(int seconds);
+    void stopDustCleaning();
+    void onDustCleaningTimerTick();
+    void apply32CAmbientProfile();
+
+    Cleaner cleaner;
+    QTimer *dustCleaningTimer = nullptr;
+    int dustCleaningRemainingSeconds = 0;
+    int dustCleaningTotalSeconds = 0;
+    bool previousCoolerBoostState = false;
+    bool cleanerAllSelected = true;
+
 private slots:
     void on_ChargerStateChange(bool isCharging);
     void on_PowerProfileChange(const PowerProfile profile);
@@ -155,5 +171,12 @@ private slots:
     void on_balancedModeRadioButton_toggled(bool checked);
     void on_silentModeRadioButton_toggled(bool checked);
     void on_superBatteryModeRadioButton_toggled(bool checked);
+
+    void on_startDustCleaningButton_clicked();
+    void on_stopDustCleaningButton_clicked();
+    void on_scanSystemButton_clicked();
+    void on_cleanSystemButton_clicked();
+    void on_toggleSelectAllButton_clicked();
+    void on_fanPreset32CButton_clicked();
 };
 #endif // MAINWINDOW_H

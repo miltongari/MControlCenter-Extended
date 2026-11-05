@@ -135,6 +135,7 @@ MainWindow::MainWindow(QWidget *parent)
         checkFanSettingsChanged();
     });
 
+    connect(ui->fanPreset32CButton, &QPushButton::clicked, this, &MainWindow::on_fanPreset32CButton_clicked);
     connect(ui->fanSpeedResetButton, &QPushButton::clicked, this, &MainWindow::updateFanSpeedSettings);
     connect(ui->fanSpeedApplyButton, &QPushButton::clicked, this, &MainWindow::setFanSpeedSettings);
     connect(&powerMonitor, &PowerMonitor::currentChargerState, this, &MainWindow::on_ChargerStateChange);
@@ -181,9 +182,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->userModeOnBatteryComboBox->setCurrentIndex(s.getValue("Settings/UserModeOnBattery").toInt());
     ui->userModeOnChargerComboBox->setCurrentIndex(s.getValue("Settings/UserModeOnCharger").toInt());
     ui->autoPPDCheckBox->setChecked(s.getValue("Settings/autoPPDstate").toBool());
+
+    dustCleaningTimer = new QTimer(this);
+    connect(dustCleaningTimer, &QTimer::timeout, this, &MainWindow::onDustCleaningTimerTick);
 }
 
 MainWindow::~MainWindow() {
+    stopDustCleaning();
     delete ui;
 }
 
@@ -197,6 +202,7 @@ void MainWindow::setTabsEnabled(bool enabled) {
     ui->batteryTab->setEnabled(enabled);
     ui->fanControlTab->setEnabled(enabled);
     ui->keyboardTab->setEnabled(enabled);
+    ui->cleaningTab->setEnabled(enabled);
     ui->debugTab->setEnabled(enabled);
 
     if (modeTrayMenu)
@@ -231,6 +237,7 @@ void MainWindow::updateData() {
             isActive = true;
         }
         updateBatteryCharge();
+        updateBatteryHealth();
         updateChargingStatus();
         updateCpuTemp();
         updateGpuTemp();
@@ -306,6 +313,27 @@ QString MainWindow::intToQString(int value) const {
 
 void MainWindow::updateBatteryCharge() {
     ui->BatteryChargeValueLabel->setText(intToQString(operate.getBatteryCharge()) + " %");
+}
+
+void MainWindow::updateBatteryHealth() {
+    BatteryHealthInfo info = BatteryHealth::getBatteryHealthInfo();
+    if (info.available) {
+        ui->batteryHealthValueLabel->setText(QString::number(info.healthPercentage, 'f', 1) + " %");
+        ui->batteryDesignCapValueLabel->setText(QString::number(info.designCapacity) + " " + info.unit);
+        ui->batteryFullCapValueLabel->setText(QString::number(info.fullCapacity) + " " + info.unit);
+        if (info.cycleCount >= 0) {
+            ui->batteryCycleCountValueLabel->setText(QString::number(info.cycleCount));
+        } else {
+            ui->batteryCycleCountValueLabel->setText(tr("N/A"));
+        }
+        ui->batteryDeviceValueLabel->setText(info.manufacturer + " (" + info.technology + ", " + info.modelName + ")");
+    } else {
+        ui->batteryHealthValueLabel->setText(tr("N/A"));
+        ui->batteryDesignCapValueLabel->setText(tr("N/A"));
+        ui->batteryFullCapValueLabel->setText(tr("N/A"));
+        ui->batteryCycleCountValueLabel->setText(tr("N/A"));
+        ui->batteryDeviceValueLabel->setText(tr("N/A"));
+    }
 }
 
 void MainWindow::updateBatteryThreshold() {
@@ -637,6 +665,7 @@ void MainWindow::setFanSpeedSettings() {
 void MainWindow::setFanModeAdvanced(bool enabled) const {
     operate.setFanModeAdvanced(enabled);
     ui->fanControlTabWidget->setEnabled(enabled);
+    ui->fanPreset32CButton->setEnabled(enabled);
     ui->fanSpeedResetButton->setEnabled(enabled);
     ui->fanSpeedApplyButton->setEnabled(enabled);
 }
@@ -1004,4 +1033,182 @@ void MainWindow::createActions() {
 
 void MainWindow::saveStateRequest(QSessionManager &sessionManager) {
     sessionManager.setRestartHint(QSessionManager::RestartNever);
+}
+
+void MainWindow::startDustCleaning(int seconds) {
+    if (seconds <= 0) return;
+    previousCoolerBoostState = operate.getCoolerBoostState();
+    dustCleaningTotalSeconds = seconds;
+    dustCleaningRemainingSeconds = seconds;
+
+    ui->dustCleaningProgressBar->setMaximum(seconds);
+    ui->dustCleaningProgressBar->setValue(0);
+    ui->startDustCleaningButton->setEnabled(false);
+    ui->stopDustCleaningButton->setEnabled(true);
+    ui->dustCleanDurationComboBox->setEnabled(false);
+    ui->dustCleaningStatusLabel->setText(tr("Cleaning fans at maximum speed... (%1s remaining)").arg(seconds));
+
+    setCoolerBoostState(true);
+    dustCleaningTimer->start(1000);
+}
+
+void MainWindow::stopDustCleaning() {
+    if (dustCleaningTimer && dustCleaningTimer->isActive()) {
+        dustCleaningTimer->stop();
+    }
+    setCoolerBoostState(previousCoolerBoostState);
+
+    ui->startDustCleaningButton->setEnabled(true);
+    ui->stopDustCleaningButton->setEnabled(false);
+    ui->dustCleanDurationComboBox->setEnabled(true);
+    ui->dustCleaningProgressBar->setValue(0);
+}
+
+void MainWindow::onDustCleaningTimerTick() {
+    dustCleaningRemainingSeconds--;
+    int elapsed = dustCleaningTotalSeconds - dustCleaningRemainingSeconds;
+    ui->dustCleaningProgressBar->setValue(elapsed);
+
+    if (dustCleaningRemainingSeconds > 0) {
+        ui->dustCleaningStatusLabel->setText(tr("Cleaning fans at maximum speed... (%1s remaining)").arg(dustCleaningRemainingSeconds));
+    } else {
+        stopDustCleaning();
+        ui->dustCleaningStatusLabel->setText(tr("Fan dust cleaning cycle finished successfully!"));
+    }
+}
+
+void MainWindow::on_startDustCleaningButton_clicked() {
+    int duration = 30;
+    switch (ui->dustCleanDurationComboBox->currentIndex()) {
+        case 0: duration = 15; break;
+        case 1: duration = 30; break;
+        case 2: duration = 45; break;
+        case 3: duration = 60; break;
+        default: duration = 30; break;
+    }
+    startDustCleaning(duration);
+}
+
+void MainWindow::on_stopDustCleaningButton_clicked() {
+    stopDustCleaning();
+    ui->dustCleaningStatusLabel->setText(tr("Dust cleaning stopped by user."));
+}
+
+void MainWindow::on_scanSystemButton_clicked() {
+    ui->cleanerLogTextEdit->append(tr("Scanning system for reclaimable files and memory..."));
+    CleanerScanReport report = cleaner.scan();
+
+    ui->cleanThumbnailsCheckBox->setText(tr("Thumbnails Cache (~/.cache/thumbnails) [%1]").arg(Cleaner::formatBytes(report.thumbnails.bytes)));
+    ui->cleanTrashCheckBox->setText(tr("Trash Can (~/.local/share/Trash) [%1]").arg(Cleaner::formatBytes(report.trash.bytes)));
+    ui->cleanAppCacheCheckBox->setText(tr("Browser & Application Cache [%1]").arg(Cleaner::formatBytes(report.appCache.bytes)));
+    ui->cleanPackageCacheCheckBox->setText(tr("Package Manager Cache [%1]").arg(Cleaner::formatBytes(report.packageCache.bytes)));
+    ui->cleanJournalCheckBox->setText(tr("Systemd Journal Logs [%1]").arg(Cleaner::formatBytes(report.journalLogs.bytes)));
+    ui->cleanRamCacheCheckBox->setText(tr("Inactive Memory (RAM Cache) [%1]").arg(Cleaner::formatBytes(report.ramCache.bytes)));
+
+    ui->cleanerLogTextEdit->append(tr("Scan complete! Total disk space to reclaim: %1").arg(Cleaner::formatBytes(report.totalDiskBytes())));
+    if (report.ramCache.bytes > 0) {
+        ui->cleanerLogTextEdit->append(tr("Inactive RAM cache available to release: %1").arg(Cleaner::formatBytes(report.ramCache.bytes)));
+    }
+}
+
+void MainWindow::on_cleanSystemButton_clicked() {
+    ui->cleanerLogTextEdit->append(tr("Starting cleanup process..."));
+    qint64 totalCleaned = 0;
+
+    if (ui->cleanThumbnailsCheckBox->isChecked()) {
+        qint64 freed = cleaner.cleanThumbnails();
+        totalCleaned += freed;
+        ui->cleanerLogTextEdit->append(tr("- Thumbnails: freed %1").arg(Cleaner::formatBytes(freed)));
+    }
+
+    if (ui->cleanTrashCheckBox->isChecked()) {
+        qint64 freed = cleaner.cleanTrash();
+        totalCleaned += freed;
+        ui->cleanerLogTextEdit->append(tr("- Trash Can: emptied %1").arg(Cleaner::formatBytes(freed)));
+    }
+
+    if (ui->cleanAppCacheCheckBox->isChecked()) {
+        qint64 freed = cleaner.cleanAppCache();
+        totalCleaned += freed;
+        ui->cleanerLogTextEdit->append(tr("- App & Browser Cache: freed %1").arg(Cleaner::formatBytes(freed)));
+    }
+
+    if (ui->cleanPackageCacheCheckBox->isChecked()) {
+        QString res = cleaner.cleanPackageCache();
+        ui->cleanerLogTextEdit->append(tr("- Packages: %1").arg(res.isEmpty() ? tr("Done") : res));
+    }
+
+    if (ui->cleanJournalCheckBox->isChecked()) {
+        QString res = cleaner.cleanJournalLogs();
+        ui->cleanerLogTextEdit->append(tr("- Journal logs: %1").arg(res));
+    }
+
+    if (ui->cleanRamCacheCheckBox->isChecked()) {
+        QString res = cleaner.dropRamCaches();
+        ui->cleanerLogTextEdit->append(tr("- RAM Cache: %1").arg(res));
+    }
+
+    ui->cleanerLogTextEdit->append(tr("Cleanup finished! Reclaimed space: %1").arg(Cleaner::formatBytes(totalCleaned)));
+
+    // Re-scan to update sizes on checkboxes
+    on_scanSystemButton_clicked();
+}
+
+void MainWindow::on_toggleSelectAllButton_clicked() {
+    cleanerAllSelected = !cleanerAllSelected;
+    ui->cleanThumbnailsCheckBox->setChecked(cleanerAllSelected);
+    ui->cleanTrashCheckBox->setChecked(cleanerAllSelected);
+    ui->cleanAppCacheCheckBox->setChecked(cleanerAllSelected);
+    ui->cleanPackageCacheCheckBox->setChecked(cleanerAllSelected);
+    ui->cleanJournalCheckBox->setChecked(cleanerAllSelected);
+    ui->cleanRamCacheCheckBox->setChecked(cleanerAllSelected);
+}
+
+void MainWindow::apply32CAmbientProfile() {
+    const QVector<int> speeds = {45, 55, 68, 80, 90, 96, 100};
+    const QVector<int> temps = {46, 54, 62, 70, 76, 82};
+
+    // Fan 1
+    ui->fan1Speed1Slider->setValue(speeds[0]);
+    ui->fan1Speed2Slider->setValue(speeds[1]);
+    ui->fan1Speed3Slider->setValue(speeds[2]);
+    ui->fan1Speed4Slider->setValue(speeds[3]);
+    ui->fan1Speed5Slider->setValue(speeds[4]);
+    ui->fan1Speed6Slider->setValue(speeds[5]);
+    ui->fan1Speed7Slider->setValue(speeds[6]);
+
+    ui->fan1Speed1TempLabel->setText(QString("< %1 °C").arg(temps[0]));
+    ui->fan1Speed2TempSpinBox->setValue(temps[0]);
+    ui->fan1Speed3TempSpinBox->setValue(temps[1]);
+    ui->fan1Speed4TempSpinBox->setValue(temps[2]);
+    ui->fan1Speed5TempSpinBox->setValue(temps[3]);
+    ui->fan1Speed6TempSpinBox->setValue(temps[4]);
+    ui->fan1Speed7TempSpinBox->setValue(temps[5]);
+
+    // Fan 2
+    ui->fan2Speed1Slider->setValue(speeds[0]);
+    ui->fan2Speed2Slider->setValue(speeds[1]);
+    ui->fan2Speed3Slider->setValue(speeds[2]);
+    ui->fan2Speed4Slider->setValue(speeds[3]);
+    ui->fan2Speed5Slider->setValue(speeds[4]);
+    ui->fan2Speed6Slider->setValue(speeds[5]);
+    ui->fan2Speed7Slider->setValue(speeds[6]);
+
+    ui->fan2Speed1TempLabel->setText(QString("< %1 °C").arg(temps[0]));
+    ui->fan2Speed2TempSpinBox->setValue(temps[0]);
+    ui->fan2Speed3TempSpinBox->setValue(temps[1]);
+    ui->fan2Speed4TempSpinBox->setValue(temps[2]);
+    ui->fan2Speed5TempSpinBox->setValue(temps[3]);
+    ui->fan2Speed6TempSpinBox->setValue(temps[4]);
+    ui->fan2Speed7TempSpinBox->setValue(temps[5]);
+
+    if (!ui->advancedFanControlCheckBox->isChecked()) {
+        ui->advancedFanControlCheckBox->setChecked(true);
+    }
+
+    setFanSpeedSettings();
+}
+
+void MainWindow::on_fanPreset32CButton_clicked() {
+    apply32CAmbientProfile();
 }

@@ -116,16 +116,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Couldn&apos;t connect to UPower to get charger status.
-Make sure that UPower is installed and running then restart the app.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Couldn&apos;t connect to Power Profiles Daemon.
-Make sure that either Power Profiles Daemon or TuneD is installed and restart the app.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Mode</source>
         <translation type="unfinished"></translation>
     </message>
@@ -154,6 +144,10 @@ Make sure that either Power Profiles Daemon or TuneD is installed and restart th
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>N/A</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Auto</source>
         <translation type="unfinished"></translation>
     </message>
@@ -166,7 +160,101 @@ Make sure that either Power Profiles Daemon or TuneD is installed and restart th
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>Couldn&apos;t connect to UPower to get charger status.
+Make sure that UPower is installed and running then restart the system.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t connect to Power Profiles Daemon.
+Make sure that either Power Profiles Daemon or TuneD is installed and restart the system.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Cooling</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cleaning fans at maximum speed... (%1s remaining)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fan dust cleaning cycle finished successfully!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Dust cleaning stopped by user.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scanning system for reclaimable files and memory...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Thumbnails Cache (~/.cache/thumbnails) [%1]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Trash Can (~/.local/share/Trash) [%1]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Browser &amp; Application Cache [%1]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Package Manager Cache [%1]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Systemd Journal Logs [%1]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inactive Memory (RAM Cache) [%1]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scan complete! Total disk space to reclaim: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inactive RAM cache available to release: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Starting cleanup process...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>- Thumbnails: freed %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>- Trash Can: emptied %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>- App &amp; Browser Cache: freed %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>- Packages: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Done</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>- Journal logs: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>- RAM Cache: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cleanup finished! Reclaimed space: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -226,11 +314,131 @@ Make sure that either Power Profiles Daemon or TuneD is installed and restart th
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>Battery Health &amp; Information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Battery Health:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Design Capacity:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Full Capacity:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cycle Count:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Device Info:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Automatic Profile Switching</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>Preset 32°C (Warm Ambient)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Keyboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cleaning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fan Dust Cleaning (Hardware)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removes dust accumulation by spinning fans at maximum speed (Cooler Boost) for a controlled cycle.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Duration:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>15 seconds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>30 seconds (Recommended)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>45 seconds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>60 seconds</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start Fan Cleaning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stop</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Status: Ready</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Linux System Cleaner</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scan and clean temporary cache, trash, and system logs to reclaim disk space and RAM.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Thumbnails Cache (~/.cache/thumbnails)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Trash Can (~/.local/share/Trash)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Browser &amp; Application Cache</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Package Manager Cache (APT/Pacman)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Systemd Journal Logs (&gt; 50 MB)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inactive Memory (RAM Cache)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Analyze Space</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Clean Selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle All</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click &apos;Analyze Space&apos; to scan for reclaimable files...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

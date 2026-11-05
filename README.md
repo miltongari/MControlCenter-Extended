@@ -1,111 +1,113 @@
-# MControlCenter
+# MControlCenter (Edición Personalizada)
 
-MControlCenter is a Free and Open Source GNU/Linux application that allows you to change the settings of MSI laptops.
+Aplicación libre y de código abierto (GPLv3) para GNU/Linux que permite monitorear, limpiar y configurar el hardware de portátiles **MSI**.
 
 ![Screen Shot of MCC](https://github.com/user-attachments/assets/1e1dcb9b-aa8e-4410-8c77-f9554c1840cb)
 
+---
 
+## 📌 Créditos y Proyecto Base
 
+Esta es una versión modificada y adaptada específicamente para mi computadora personal, basada en el excelente trabajo de los siguientes proyectos:
 
-## Features
+* **Proyecto original (GUI y servicio):** [MControlCenter](https://github.com/dmitry-s93/MControlCenter) creado por **[dmitry-s93 (Dmitry Serov)](https://github.com/dmitry-s93)** y sus colaboradores.
+* **Driver del Kernel de Linux:** [msi-ec](https://github.com/BeardOverflow/msi-ec) desarrollado por **[BeardOverflow](https://github.com/BeardOverflow)** y la comunidad.
 
- - CPU and GPU temperature display
- - Fan speed display
- - Switch between modes (Since version 0.2):
-   - High Performance
-   - Balanced
-   - Silent
-   - Super Battery
- - Change the maximum battery level limit
- - Advanced Fan Speed Control (Since version 0.4)
- - Change other settings such as keyboard backlight mode, USB Power Share, etc.
+---
 
-## TODO
+## ✨ Cambios y Mejoras Realizadas en esta Versión
 
-- Saving multiple fan speed profiles
-- Automatically change performance mode on charger connect/disconnect
+Además de las funciones originales de MControlCenter, se implementaron las siguientes mejoras personalizadas:
 
-## Supported devices
+### 1. 🧹 Nueva Pestaña de "Limpieza" (`Cleaning`)
+* **Despolvoreado de Ventiladores (Hardware):**
+  * Ciclo temporizado (15s, 30s, 45s o 60s) que activa los ventiladores al 100% (*Cooler Boost*) para expulsar polvo acumulado en los disipadores.
+  * Barra de progreso en tiempo real, botón de parada de emergencia y restauración automática del estado previo de los ventiladores al finalizar.
+* **Limpiador del Sistema GNU/Linux (Software):**
+  * Escaneo y liberación de espacio en disco para:
+    * Caché de miniaturas (`~/.cache/thumbnails`).
+    * Papelera de reciclaje (`~/.local/share/Trash`).
+    * Caché de navegadores y aplicaciones (Chrome, Chromium, Firefox, Mesa shader cache, pip, npm, Flatpak).
+    * Caché de gestores de paquetes (`APT`, `Pacman`, `Flatpak` huérfanos).
+    * Registros antiguos de `systemd-journald` (reducción segura a 50 MB).
+  * **Liberación de memoria RAM inactiva:** Limpieza de *Page Cache* y *Buffers* del kernel (`drop_caches`).
 
-With version 0.5.0 the app uses the msi-ec driver that comes with the linux kernel (you might need to reinstall the driver), so device support depends on whether the kernel driver supports your device or not.
+### 2. ❄️ Perfil Térmico Calibrado para 32 °C Ambiente (Clima Cálido)
+* Curva de ventilación adaptada para entornos con temperatura ambiente elevada (~32 °C) que evita la absorción pasiva de calor (*heat soak*) y el estrangulamiento térmico (*thermal throttling*):
+  * **< 46 °C:** 45% (flujo continuo y silencioso en reposo).
+  * **46 °C – 54 °C:** 55%
+  * **54 °C – 62 °C:** 68%
+  * **62 °C – 70 °C:** 80%
+  * **70 °C – 76 °C:** 90%
+  * **76 °C – 82 °C:** 96%
+  * **≥ 82 °C:** 100% (máxima potencia antes de alcanzar temperaturas críticas).
+* Botón de acceso rápido **"Perfil 32°C (Clima cálido)"** integrado directamente en la pestaña *Fan control*.
 
-[**List of tested devices by msi-ec**](https://github.com/BeardOverflow/msi-ec/discussions/277)
+### 3. 🔋 Diagnóstico y Salud de la Batería
+* Nuevo panel informativo en la pestaña *Battery* que lee directamente de `/sys/class/power_supply/BAT1/`:
+  * Porcentaje real de **Salud de la batería** (*Battery Health %*).
+  * Comparativa entre capacidad de diseño de fábrica y capacidad máxima actual (`mAh` / `mWh`).
+  * Conteo de ciclos de carga, fabricante, modelo y tecnología de celda.
 
-If your device is not on the list, follow the steps on the `msi-ec` github page and open an issue there to add support for your device.
+### 4. 🪟 Interfaz Compacta y Traducción al Español
+* Eliminación de barras deslizantes (*scrollbars*) innecesarias mediante un diseño compacto y ventana redimensionable (**590 × 520 px** por defecto) para visualizar todos los controles de un vistazo.
+* Traducción completa al español de todos los nuevos módulos e indicadores.
 
-## Installation
+---
 
-### Pre-Installation
+## ⚙️ Características Generales
 
-- Check the output of ```cat /sys/devices/platform/msi-ec/shift_mode``` in your terminal, if it says ```No such file or directory``` it means that you need to install or reinstall (uninstall first then install) the [msi-ec driver](https://github.com/BeardOverflow/msi-ec?tab=readme-ov-file#installation). or the application will open **but will have limited functionality!**  
+* Visualización de temperaturas de CPU/GPU y velocidad de ventiladores (RPM) en tiempo real.
+* Cambio de perfiles de energía (*High Performance*, *Balanced*, *Silent*, *Super Battery*) e integración con `power-profiles-daemon` (PPD).
+* Cambio automático de perfil al conectar o desconectar el cargador.
+* Límite de carga máxima de batería (60%, 80%, 100% o personalizado) para prolongar su vida útil.
+* Control de retroiluminación de teclado, brillo, cámara web, *USB Power Share* e intercambio de teclas `Fn` ⇄ `Super`.
 
-- If you're not installing from the packages, You'll need to install `libqt6widgets6` or its equivalent on your distribution (```qt6-base``` for example). **the application will fail to open without it!** 
+---
 
+## 🛠️ Requisitos e Instalación
 
+### Pre-requisitos
+1. Contar con el driver del kernel [`msi-ec`](https://github.com/BeardOverflow/msi-ec) y/o el módulo `ec_sys` con soporte de escritura (`write_support=1`).
+2. Dependencias de compilación (Qt 6 y CMake):
+   * **Ubuntu / Debian / Linux Mint:**
+     ```bash
+     sudo apt install build-essential cmake qt6-base-dev qt6-tools-dev qt6-tools-dev-tools libqt6dbus6
+     ```
+   * **Arch Linux:** `qt6-base qt6-tools cmake base-devel`
+   * **Fedora:** `qt6-qtbase-devel qt6-qttools-devel cmake gcc-c++`
 
--  to get temperature and fan curve support, you'll need to install `ec_sys`, which comes installed on most distributions, or `acpi_sys` (fedora) with `write_support=1`. the app can still work with only `msi-ec` installed.
+### Compilar e Instalar desde el código fuente
 
-### Installation from packages
+```bash
+# 1. Compilar el proyecto
+cmake -B build -S .
+cmake --build build -j$(nproc)
 
-1. Download the correct package for your distribution from the [releases page](https://github.com/dmitry-s93/MControlCenter/releases/)
-2. Double click to open it in the software manager (ex. Discover or GNOME software)
-3. Install
+# 2. Instalar el binario actualizado en el sistema
+sudo install -m755 build/mcontrolcenter /usr/bin/mcontrolcenter
+sudo install -m755 build/helper/mcontrolcenter-helper /usr/libexec/mcontrolcenter-helper
+```
 
-### If your distribution is not listed, use the generic installer:
+También puedes utilizar los scripts incluidos en la carpeta `scripts/`:
+```bash
+cd scripts
+./build.sh
+./create_installer.sh
+```
 
-1. Download MControlCenter-x.x.x.tar.gz from the [releases page](https://github.com/dmitry-s93/MControlCenter/releases/)
-2. Unpack the archive with the program
-3. Open a terminal in the unpacked directory
-4. Run the script `sudo ./install`
-5. (Optional) `sudo ./uninstall` to uninstall
+---
 
-**Note:** Below are the steps for compiling, usually needed if your distrobution ships old versions of Qt6
+## 🚀 Iniciar automáticamente con el sistema
 
-## Building from source
-After installing the main package (```qt6-base``` or ```libqt6widgets6```), you'll need to install other packages to build the app.
+Para que MControlCenter se inicie en cada arranque y aplique tus configuraciones:
 
-For ubuntru/Linux mint:
-```qt6-base-dev``` and/or ```qt6-tools-dev``` also ```build-essential```
+```bash
+cp /usr/share/applications/mcontrolcenter.desktop ~/.config/autostart/mcontrolcenter.desktop
+```
 
-For Arch ```qt6-tools``` And for fedora ```qt6-qttools```
+---
 
-After you install the packages:
+## 📄 Licencia
 
-Make sure the app is completely closed if it was installed before (check if there is a system tray icon and close it).
-
-Download the source code and extract the zip file.
-
-Open the ```scripts``` folder.
-
-Open a terminal inside the folder, then run these scripts in order:
-
-1. ```build```
-2. ```create installer```
-
-If things went well, you should see a compressed file,
-
-4. Extract it.
-5. Open a terminal inside the new folder
-6. Run the **UNINSTALL** script as *sudo*, it might fail if you don't have MCC installed. thats fine.
-7. Run the **INSTALL** script as *sudo*, the last line should be a confirmation that the install was successful.
-8. Check your apps, McontrolCenter should be there.
-
-If the installation was successful but the app fails to run, open a terminal and type ```mcontrolcenter```, copy the output and open an issue (**IF** there isn't one already).
-
-## Launch MControlCenter on session startup
-
-To restore settings after a reboot, add MControlCenter to startup.
-
-Execute this command on a terminal:
-
-`cp /usr/share/applications/mcontrolcenter.desktop ~/.config/autostart/mcontrolcenter.desktop`
-
-## Localization
-
-You can help translate the MControlCenter app into your native language
-
-1. Copy `/src/i18n/MControlCenter_en.ts` to `src/i18n/MControlCenter_xx.ts` where xx is language code into which the translation is being made.
-2. Open `MControlCenter_xx.ts` in text editor and change `language="en_US"` to your language code.
-3. Translate strings into your language directly in a text editor or use the QT Linguist app or Lokalize.
-4. Translate `GenericName` in app shortcut `resources/mcontrolcenter.desktop`. To do this, add the line `GenericName[xx]=translated generic name`.
-5. Open a pull request on github.
+Este proyecto se distribuye bajo la licencia **GNU General Public License v3.0 (GPLv3)**. Consulta el archivo [LICENSE](LICENSE) para más detalles.
